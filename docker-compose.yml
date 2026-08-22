@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: outboard-lol-postgres
+    restart: unless-stopped
+    ports:
+      - "5437:5432"
+    environment:
+      POSTGRES_USER: outboard
+      POSTGRES_PASSWORD: outboard
+      POSTGRES_DB: outboard_lol
+    volumes:
+      - outboard_lol_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U outboard -d outboard_lol"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  outboard_lol_pgdata:
