@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -171,6 +172,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             signUpFallbackRedirectUrl="/overview"
           >
             {children}
+            <Analytics />
           </ClerkProvider>
         </ThemeProvider>
       </body>
