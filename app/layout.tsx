@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Analytics } from "@vercel/analytics/next";
 import { JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import NextTopLoader from "nextjs-toploader";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { clerkAppearance } from "@/lib/clerk-appearance";
@@ -162,6 +163,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+        <NextTopLoader
+          color="#0D9488"
+          height={2}
+          showSpinner={false}
+          shadow={false}
+          showForHashAnchor={false}
         />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
           <ClerkProvider

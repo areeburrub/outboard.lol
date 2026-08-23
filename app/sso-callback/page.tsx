@@ -2,7 +2,7 @@
 
 import { useClerk, useSignIn, useSignUp } from "@clerk/nextjs";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter } from "nextjs-toploader/app";
 import { useEffect, useRef, useState } from "react";
 
 import { Spinner } from "@/components/ui/spinner";
