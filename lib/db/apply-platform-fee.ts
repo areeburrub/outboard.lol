@@ -5,6 +5,7 @@ import {
 import { getBoardById, setPlatformFeeStatus } from "@/lib/db/boards";
 import { platformDodoClient } from "@/lib/dodo";
 import { PLATFORM_FEE_CENTS } from "@/lib/money";
+import { revalidatePublicBoard } from "@/lib/cache/public-board";
 
 export type ApplyPlatformFeeResult =
   | { ok: true; created: boolean }
@@ -24,6 +25,7 @@ export async function applySuccessfulPlatformFee(input: {
     const board = await getBoardById(input.boardId);
     if (board && board.platformFeeStatus !== "paid") {
       await setPlatformFeeStatus(input.boardId, "paid");
+      revalidatePublicBoard(board.slug);
     }
     return { ok: true, created: false };
   }
@@ -36,11 +38,19 @@ export async function applySuccessfulPlatformFee(input: {
 
   if (inserted) {
     await setPlatformFeeStatus(input.boardId, "paid");
+    const board = await getBoardById(input.boardId);
+    if (board) {
+      revalidatePublicBoard(board.slug);
+    }
     return { ok: true, created: true };
   }
 
   // Race on unique payment id
   await setPlatformFeeStatus(input.boardId, "paid");
+  const board = await getBoardById(input.boardId);
+  if (board) {
+    revalidatePublicBoard(board.slug);
+  }
   return { ok: true, created: false };
 }
 

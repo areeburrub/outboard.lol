@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { cache } from "react";
 
 import { db } from "@/lib/db";
 import {
@@ -17,11 +18,11 @@ export async function getBoardByOwnerId(ownerId: string) {
   });
 }
 
-export async function getBoardBySlug(slug: string) {
+export const getBoardBySlug = cache(async function getBoardBySlug(slug: string) {
   return db.query.boards.findFirst({
     where: eq(boards.slug, normalizeSlug(slug)),
   });
-}
+});
 
 export async function getBoardById(id: string) {
   return db.query.boards.findFirst({

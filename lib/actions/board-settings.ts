@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import { updateBoardSettings } from "@/lib/db/boards";
 import { ensureOperator } from "@/lib/db/operator";
+import { revalidatePublicBoard } from "@/lib/cache/public-board";
 
 function normalizeHttpUrl(raw: string) {
   const value = raw.trim();
@@ -96,9 +97,7 @@ export async function saveBoardSettings(input: {
 
     revalidatePath("/settings");
     revalidatePath("/overview");
-    revalidatePath(`/b/${board.slug}`);
-    revalidatePath(`/b/${board.slug}`, "layout");
-    revalidatePath("/", "layout");
+    revalidatePublicBoard(board.slug);
     return { ok: true };
   } catch (error) {
     return {

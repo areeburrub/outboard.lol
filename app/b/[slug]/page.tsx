@@ -1,39 +1,32 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
-import { CleanPaidReturnUrl } from "@/components/board/clean-paid-return-url";
+import { PaidReturnHandler } from "@/components/board/paid-return-handler";
 import { PublicBoard } from "@/components/board/public-board";
 import { PublicNav } from "@/components/board/public-nav";
-import { ConfettiBurst } from "@/components/confetti-burst";
 import {
   listingFallbackName,
   takeFirstDollars,
   toLeaderboardRows,
 } from "@/lib/board-rows";
-import { reconcileBidFromPaymentId } from "@/lib/db/apply-bid-payment";
 import {
   boardLinks,
   boardMinBidCents,
   getBoardBySlug,
   isDodoConnected,
 } from "@/lib/db/boards";
-import {
-  hydrateMissingListingMeta,
-  listLiveRankings,
-} from "@/lib/db/listings";
+import { listLiveRankings } from "@/lib/db/listings";
 import { FEE_THRESHOLD_CENTS, formatUsdFromCents } from "@/lib/money";
 import {
   boardOgImagePath,
   boardShareMeta,
-  boardTwitterImagePath,
 } from "@/lib/og/board-share";
 import { OG_IMAGE_SIZE } from "@/lib/site";
 import { normalizeSlug } from "@/lib/slug";
-import { publicBoardUrl, tenantSlugFromHost } from "@/lib/tenant";
+import { publicBoardUrl } from "@/lib/tenant";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 30;
 
 export async function generateMetadata({
   params,
@@ -83,61 +76,27 @@ export async function generateMetadata({
       card: "summary_large_image",
       title: `${share.title} · outboard`,
       description: share.description,
-      images: [boardTwitterImagePath(slug)],
+      images: [boardOgImagePath(slug)],
     },
   };
 }
 
 export default async function PublicBoardPage({
   params,
-  searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{
-    paid?: string;
-    payment_id?: string;
-    status?: string;
-    email?: string;
-  }>;
 }) {
   const { slug: raw } = await params;
-  const query = await searchParams;
   const slug = normalizeSlug(raw);
   const board = await getBoardBySlug(slug);
   if (!board) {
     notFound();
   }
 
-  let paidNotice: "ok" | "pending" | "error" | null = null;
-  let paidError: string | null = null;
+  const bidPath = publicBoardUrl(slug, "/bid");
+  const goPrefix = publicBoardUrl(slug, "/go");
 
-  const paymentId = query.payment_id?.trim();
-  const looksPaid =
-    Boolean(paymentId) &&
-    (query.status === "succeeded" ||
-      query.paid === "1" ||
-      query.paid === "true");
-
-  if (looksPaid && paymentId) {
-    const result = await reconcileBidFromPaymentId({ board, paymentId });
-    if (result.ok) {
-      paidNotice = "ok";
-    } else {
-      paidNotice = "error";
-      paidError = result.error;
-    }
-  } else if (query.paid === "1" && !paymentId) {
-    paidNotice = "pending";
-  }
-
-  const host = (await headers()).get("host") ?? "";
-  const onTenantHost = tenantSlugFromHost(host) === slug;
-  const bidPath = onTenantHost ? "/bid" : `/b/${slug}/bid`;
-  const goPrefix = onTenantHost ? "/go" : `/b/${slug}/go`;
-
-  const rankings = await hydrateMissingListingMeta(
-    await listLiveRankings(board.id),
-  );
+  const rankings = await listLiveRankings(board.id);
   const topBid = rankings[0]?.totalBidCents ?? 0;
   const feeDue = board.platformFeeStatus === "due";
   const connected = isDodoConnected(board);
@@ -149,8 +108,6 @@ export default async function PublicBoardPage({
 
   return (
     <div className="ob-wash flex min-h-full flex-1 flex-col">
-      <CleanPaidReturnUrl active={Boolean(paymentId) || query.paid === "1"} />
-      <ConfettiBurst active={paidNotice === "ok"} />
       <PublicNav
         name={board.name}
         slug={slug}
@@ -179,24 +136,7 @@ export default async function PublicBoardPage({
       ) : null}
 
       <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-8 px-4 pt-8 pb-16 sm:px-6 sm:pt-12">
-        {paidNotice === "ok" ? (
-          <p className="text-center text-sm text-ob-ink">
-            Payment confirmed. Your listing is on the board.
-          </p>
-        ) : null}
-        {paidNotice === "pending" ? (
-          <p className="text-center text-sm text-ob-mute">
-            Payment received. If your listing is not up yet, refresh in a
-            moment.
-          </p>
-        ) : null}
-        {paidNotice === "error" ? (
-          <p className="text-center text-sm text-destructive">
-            Could not confirm payment
-            {paidError ? `: ${paidError}` : "."} If you were charged, refresh
-            shortly or contact the board owner.
-          </p>
-        ) : null}
+        <PaidReturnHandler slug={slug} />
 
         <PublicBoard
           key={`${minBidCents}-${topBid}-${rules.length}-${links.length}`}

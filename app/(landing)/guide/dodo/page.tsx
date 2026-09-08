@@ -8,6 +8,8 @@ export const metadata: Metadata = {
     "Create a Dodo Payments account, get your API key, and connect it to outboard so bids go straight to you.",
 };
 
+export const revalidate = 86400;
+
 const steps = [
   {
     n: "01",

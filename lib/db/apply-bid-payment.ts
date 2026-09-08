@@ -1,9 +1,10 @@
 import { getBidByDodoPaymentId, insertBid } from "@/lib/db/bids";
-import { incrementBoardTotalBids } from "@/lib/db/boards";
+import { getBoardById, incrementBoardTotalBids } from "@/lib/db/boards";
 import { upsertListingOnBid } from "@/lib/db/listings";
 import { boards, type ListingKind } from "@/lib/db/schema";
 import { operatorDodoClient } from "@/lib/dodo";
 import { fetchListingMeta } from "@/lib/listing-meta";
+import { revalidatePublicBoard } from "@/lib/cache/public-board";
 
 export type ApplyBidPaymentInput = {
   boardId: string;
@@ -67,6 +68,10 @@ export async function applySuccessfulBidPayment(
 
   if (bid) {
     await incrementBoardTotalBids(input.boardId, input.chargeCents);
+    const board = await getBoardById(input.boardId);
+    if (board) {
+      revalidatePublicBoard(board.slug);
+    }
     return { ok: true, created: true };
   }
 

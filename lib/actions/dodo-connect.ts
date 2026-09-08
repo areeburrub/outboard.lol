@@ -12,6 +12,7 @@ import {
 import { ensureOperator } from "@/lib/db/operator";
 import { dodoClientFromApiKey } from "@/lib/dodo";
 import { operatorWebhookUrl } from "@/lib/tenant";
+import { revalidatePublicBoard } from "@/lib/cache/public-board";
 
 export type ConnectDodoResult =
   | { ok: true }
@@ -87,6 +88,7 @@ export async function connectDodo(apiKey: string): Promise<ConnectDodoResult> {
 
     revalidatePath("/payments");
     revalidatePath("/overview");
+    revalidatePublicBoard(board.slug);
     return { ok: true };
   } catch (error) {
     console.error("connectDodo", error);

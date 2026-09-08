@@ -5,6 +5,8 @@ import { BoardPreview } from "@/components/landing/board-preview";
 import { ClaimSlugForm } from "@/components/landing/claim-slug-form";
 import { Button } from "@/components/ui/button";
 
+export const revalidate = 86400;
+
 const steps: {
   n: string;
   title: string;

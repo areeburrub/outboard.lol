@@ -3,7 +3,7 @@ import { loadBoardOgData } from "@/lib/og/board-share";
 import { OG_IMAGE_SIZE } from "@/lib/site";
 
 export const runtime = "nodejs";
-export const revalidate = 60;
+export const revalidate = 300;
 export const alt = "Pay-to-rank board on outboard";
 export const size = OG_IMAGE_SIZE;
 export const contentType = "image/png";

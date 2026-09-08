@@ -1,16 +1,19 @@
 import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { cache } from "react";
 
 import { db } from "@/lib/db";
 import { listings, type ListingKind } from "@/lib/db/schema";
 import { fetchListingMeta, type ListingMeta } from "@/lib/listing-meta";
 
-export async function listLiveRankings(boardId: string) {
+export const listLiveRankings = cache(async function listLiveRankings(
+  boardId: string,
+) {
   return db.query.listings.findMany({
     where: and(eq(listings.boardId, boardId), eq(listings.status, "live")),
     orderBy: [desc(listings.totalBidCents), asc(listings.createdAt)],
   });
-}
+});
 
 export async function getListingById(boardId: string, listingId: string) {
   return db.query.listings.findFirst({
