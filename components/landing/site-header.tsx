@@ -1,6 +1,6 @@
 "use client";
 
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { Show, UserButton } from "@clerk/nextjs";
 import { RankingIcon, UserIcon } from "@phosphor-icons/react/ssr";
 import Link from "next/link";
 
@@ -41,7 +41,7 @@ export function SiteHeader() {
 
           <div className="flex items-center gap-2">
             <ModeToggle />
-            <SignedOut>
+            <Show when="signed-out">
               <Button
                 nativeButton={false}
                 render={<Link href="/sign-in" />}
@@ -59,8 +59,8 @@ export function SiteHeader() {
               >
                 Sign up
               </Button>
-            </SignedOut>
-            <SignedIn>
+            </Show>
+            <Show when="signed-in">
               <Button
                 nativeButton={false}
                 render={<Link href="/overview" />}
@@ -78,7 +78,7 @@ export function SiteHeader() {
                   },
                 }}
               />
-            </SignedIn>
+            </Show>
           </div>
         </div>
       </div>
